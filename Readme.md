@@ -26,7 +26,7 @@ To list configuration data, use the aws configure list command.
 ## Terraform
 
 ### Update profile
-Update AWS profile name in the main.tf
+Replace the AWS PROFILE with your own in main.tf.
 ```json
 provider "aws" {
   profile = "[YOUR_PROFILE]"
@@ -40,22 +40,32 @@ provider "aws" {
 ```
 
 ### Apply
+Replace the SNS email address with your own in variables.tf.
+```json
+variable "sns_email" {
+  type    = string
+   default = "[YOUR_EMAIL]"
+}
+```
+
 ```shell
 > terraform apply
 ```
 
-After terraform plan execution is complete look for the outputs to test your API.
+After the Terraform plan execution is complete, look for the outputs to test your API.
 
 Outputs:
 
 - lambda_function_url = "https://<url_id>.lambda-url.<region>.on.aws/"
 - s3_bucket_name = "ei-bg-api-file-upload"
 
+AWS will send you an email to confirm your subscription to SNS. Click the link in the email to confirm your email address and receive notifications when files are uploaded.
+
 ### Destroy
 
-Before destroying, you must remove the uploaded images from the S3 bucket, as AWS policy prohibits deleting buckets that are not empty.
+Before destroying, you must remove the uploaded images from the S3 bucket, as AWS policy prohibits deleting non-empty buckets.
 
-You can either use the DeleteFiles endpoint or manually delete the files in the AWS console.
+You can either use the DeleteFiles endpoint or manually delete the files from the AWS console.
 
 ```shell
 > terraform destroy

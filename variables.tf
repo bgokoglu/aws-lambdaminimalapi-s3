@@ -12,3 +12,8 @@ variable "s3_lambda_bucket_name" {
   type    = string
   default = "ei-bg-api-lambda-bucket"
 }
+
+variable "sns_email" {
+  type    = string
+   default = "burak.gokoglu@eversana.com"
+}

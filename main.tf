@@ -135,6 +135,63 @@ resource "aws_lambda_function_url" "test_latest" {
   authorization_type = "NONE"
 }
 
+# SNS
+# data "aws_iam_policy_document" "ei_bg_s3_sns_topic_policy" {
+#   statement {
+#     effect = "Allow"
+
+#     principals {
+#       type        = "Service"
+#       identifiers = ["s3.amazonaws.com"]
+#     }
+
+#     actions   = ["SNS:Publish"]
+#     resources = ["arn:aws:sns:*:*:ei_bg_file_upload_topic"]
+
+#     condition {
+#       test     = "ArnLike"
+#       variable = "aws:SourceArn"
+#       values   = [aws_s3_bucket.file_upload_bucket.arn]
+#     }
+#   }
+# }
+
+resource "aws_sns_topic" "file_upload_topic" {
+  name = "ei_bg_file_upload_topic"
+  //policy = data.aws_iam_policy_document.ei_bg_s3_sns_topic_policy.json
+  
+  policy = <<POLICY
+  {
+      "Version":"2012-10-17",
+      "Statement":[{
+          "Effect": "Allow",
+          "Principal": {"Service":"s3.amazonaws.com"},
+          "Action": "SNS:Publish",
+          "Resource":  "arn:aws:sns:*:*:ei_bg_file_upload_topic",
+          "Condition":{
+              "ArnLike":{"aws:SourceArn":"${aws_s3_bucket.file_upload_bucket.arn}"}
+          }
+      }]
+  }
+  POLICY
+}
+
+resource "aws_sns_topic_subscription" "file_upload_topic_subscription" {
+  topic_arn = aws_sns_topic.file_upload_topic.arn
+  protocol  = "email"
+  endpoint  = var.sns_email
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.file_upload_bucket.id
+
+  topic {
+    topic_arn     = aws_sns_topic.file_upload_topic.arn
+    events        = ["s3:ObjectCreated:*"]
+    # filter_suffix = ".log" //we will use this to filter out thumbnail creation emails
+  }
+}
+
 # resource "aws_lambda_function" "image_converter_lambda" {
 #   function_name = "ei_bg_image_converter_lambda"
 #   role          = aws_iam_role.lambda_execution_role.arn
