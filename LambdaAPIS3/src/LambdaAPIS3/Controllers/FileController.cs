@@ -103,4 +103,26 @@ public class FileController : ControllerBase
         
         return NoContent();
     }
+
+    [HttpDelete("delete-all")]
+    public async Task<IActionResult> DeleteFilesAsync(string bucketName)
+    {
+        var bucketExists = await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
+        if (!bucketExists) 
+            return NotFound($"Bucket {bucketName} does not exist.");
+        
+        var request = new ListObjectsV2Request
+        {
+            BucketName = bucketName
+        };
+        
+        var result = await _s3Client.ListObjectsV2Async(request);
+
+        foreach (var s3Object in result.S3Objects)
+        {
+            await _s3Client.DeleteObjectAsync(bucketName, s3Object.Key);
+        }
+
+        return NoContent();
+    }
 }
