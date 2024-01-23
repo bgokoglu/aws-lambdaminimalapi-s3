@@ -116,9 +116,9 @@ resource "aws_lambda_function" "file_upload_lambda" {
   filename      = data.archive_file.lambda1_function_archive.output_path
 
   # CloudWatch Logs configuration
-  tracing_config {
-    mode = "PassThrough"
-  }
+  # tracing_config {
+  #   mode = "PassThrough"
+  # }
   
 #  environment {
 #    variables = {
@@ -177,14 +177,12 @@ resource "aws_sns_topic_subscription" "file_upload_topic_subscription" {
   endpoint  = var.sns_email
 }
 
-resource "aws_s3_bucket_notification" "bucket_notification" {
+resource "aws_s3_bucket_notification" "s3_sns_trigger" {
   bucket = aws_s3_bucket.file_upload_bucket.id
-
   topic {
     topic_arn     = aws_sns_topic.file_upload_topic.arn
     events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "images/"
-    # filter_suffix = ".log" //we will use this to filter out thumbnail creation emails
+    filter_prefix = "thumbnails/"
   }
 }
 
@@ -203,9 +201,9 @@ resource "aws_lambda_function" "image_converter_lambda" {
   filename      = data.archive_file.lambda2_function_archive.output_path
 
   # CloudWatch Logs configuration
-  tracing_config {
-    mode = "PassThrough"
-  }
+  # tracing_config {
+  #   mode = "PassThrough"
+  # }
 
    environment {
      variables = {
@@ -232,22 +230,22 @@ resource "aws_lambda_permission" "allow_lambda2_cloudwatch_logs" {
 }
 
 # Set up S3 event trigger for Lambda function
-# resource "aws_s3_bucket_notification" "s3_lambda_img_converter_trigger" {
-#   bucket = aws_s3_bucket.file_upload_bucket.id
-#   lambda_function {
-#     lambda_function_arn = aws_lambda_function.image_converter_lambda.arn
-#     events = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"] //delete thumbnail if image is removed
-#     filter_prefix = "images/"
-#   }
-# }
+resource "aws_s3_bucket_notification" "s3_lambda_img_converter_trigger" {
+  bucket = aws_s3_bucket.file_upload_bucket.id
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.image_converter_lambda.arn
+    events = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"] //delete thumbnail if image is removed
+    filter_prefix = "images/"
+  }
+}
 
-# resource "aws_lambda_permission" "s3_lambda_img_converter_trigger_permission" {
-#   statement_id  = "AllowS3Invoke"
-#   action        = "lambda:InvokeFunction"
-#   function_name = aws_lambda_function.image_converter_lambda.function_name
-#   principal     = "s3.amazonaws.com"
-#   source_arn    = "arn:aws:s3:::${aws_s3_bucket.file_upload_bucket.id}"
-# }
+resource "aws_lambda_permission" "s3_lambda_img_converter_trigger_permission" {
+  statement_id  = "AllowS3Invoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.image_converter_lambda.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::${aws_s3_bucket.file_upload_bucket.id}"
+}
 
 resource "aws_lambda_function_url" "test_latest" {
   function_name      = aws_lambda_function.file_upload_lambda.function_name

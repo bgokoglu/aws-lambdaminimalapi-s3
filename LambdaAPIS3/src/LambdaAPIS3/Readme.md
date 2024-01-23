@@ -55,6 +55,9 @@ To Do:
 - terraform.tfstate location
 - Clean up main.tf and update output.tf (1)
 - Create another lambda that will trigger upon file upload and create a thumbnail of the uploaded image (2)
+    - delete image then delete thumbnail
+    - log level
+    - terraform update so event notification is created for sns, currently it is not. mirror lambda invocation
 - Add diagram
 
 ```
