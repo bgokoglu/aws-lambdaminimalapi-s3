@@ -15,5 +15,5 @@ variable "s3_lambda_bucket_name" {
 
 variable "sns_email" {
   type    = string
-   default = "burak.gokoglu@eversana.com"
+  default = "burak.gokoglu@gmail.com"
 }

@@ -55,6 +55,7 @@ To Do:
 - terraform.tfstate location
 - Clean up main.tf and update output.tf (1)
 - Create another lambda that will trigger upon file upload and create a thumbnail of the uploaded image (2)
+- Add diagram
 
 ```
 > git filter-branch -f --index-filter 'git rm --cached -r --ignore-unmatch .terraform/'

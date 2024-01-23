@@ -102,7 +102,7 @@ resource "aws_lambda_permission" "allow_lambda1_cloudwatch_logs" {
 }
 
 # Lambda API S3 Function
-data "archive_file" "lambda_function_archive" {
+data "archive_file" "lambda1_function_archive" {
   type        = "zip"
   source_dir  = "${path.module}/LambdaAPIS3/src/LambdaAPIS3/bin/release/net6.0"
   output_path = "${path.module}/LambdaAPIS3/src/LambdaAPIS3/bin/release/net6.0/LambdaAPIS3.zip"
@@ -113,7 +113,7 @@ resource "aws_lambda_function" "file_upload_lambda" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "LambdaAPIS3"
   runtime       = "dotnet6"
-  filename      = data.archive_file.lambda_function_archive.output_path
+  filename      = data.archive_file.lambda1_function_archive.output_path
 
   # CloudWatch Logs configuration
   tracing_config {
@@ -128,11 +128,6 @@ resource "aws_lambda_function" "file_upload_lambda" {
 
   # Set the timeout to 20 seconds
   timeout = 20
-}
-
-resource "aws_lambda_function_url" "test_latest" {
-  function_name      = aws_lambda_function.file_upload_lambda.function_name
-  authorization_type = "NONE"
 }
 
 # SNS
@@ -188,49 +183,73 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   topic {
     topic_arn     = aws_sns_topic.file_upload_topic.arn
     events        = ["s3:ObjectCreated:*"]
+    filter_prefix = "images/"
     # filter_suffix = ".log" //we will use this to filter out thumbnail creation emails
   }
 }
 
-# resource "aws_lambda_function" "image_converter_lambda" {
-#   function_name = "ei_bg_image_converter_lambda"
-#   role          = aws_iam_role.lambda_execution_role.arn
-#   handler       = "LambdaAPIS3"
-#   runtime       = "dotnet6"
-#   filename      = data.archive_file.lambda_function_archive.output_path
-
-#   # CloudWatch Logs configuration
-#   tracing_config {
-#     mode = "PassThrough"
-#   }
-
-#   #  environment {
-#   #    variables = {
-#   #      BUCKET_NAME = aws_s3_bucket.lambda_bucket.bucket,
-#   #    }
-#   #  }
-
-#   # Set the timeout to 20 seconds
-#   timeout = 20
-# }
-
 # Lambda Image Converter Function
-# data "archive_file" "lambda_function_archive" {
-#   type        = "zip"
-#   source_dir  = "${path.module}/LambdaImageConverterS3/src/LambdaImageConverterS3/bin/release/net6.0/publish"
-#   output_path = "${path.module}/LambdaImageConverterS3/src/LambdaImageConverterS3/bin/release/net6.0/LambdaImageConverterS3.zip"
-# }
+data "archive_file" "lambda2_function_archive" {
+  type        = "zip"
+  source_dir  = "${path.module}/LambdaImageConverterS3/src/LambdaImageConverterS3/bin/release/net6.0"
+  output_path = "${path.module}/LambdaImageConverterS3/src/LambdaImageConverterS3/bin/release/net6.0/LambdaImageConverterS3.zip"
+}
+
+resource "aws_lambda_function" "image_converter_lambda" {
+  function_name = "ei_bg_image_converter_lambda"
+  role          = aws_iam_role.lambda_execution_role.arn
+  handler       = "LambdaImageConverterS3::LambdaImageConverterS3.Function::FunctionHandler"
+  runtime       = "dotnet6"
+  filename      = data.archive_file.lambda2_function_archive.output_path
+
+  # CloudWatch Logs configuration
+  tracing_config {
+    mode = "PassThrough"
+  }
+
+   environment {
+     variables = {
+       BUCKET_NAME = var.s3_file_upload_bucket_name,
+     }
+   }
+
+  # Set the timeout to 20 seconds
+  timeout = 20
+}
 
 # Cloud Watch
-# resource "aws_cloudwatch_log_group" "lambda_img_converter_log_group" {
-#   name = "/aws/lambda/ei_bg_lambda_image_converter"
-#   # Additional configurations if needed
+resource "aws_cloudwatch_log_group" "lambda_img_converter_log_group" {
+  name = "/aws/lambda/ei_bg_lambda_image_converter"
+  # Additional configurations if needed
+}
+
+resource "aws_lambda_permission" "allow_lambda2_cloudwatch_logs" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.image_converter_lambda.arn
+  principal     = "logs.amazonaws.com"
+  source_arn    = aws_cloudwatch_log_group.lambda_img_converter_log_group.arn
+}
+
+# Set up S3 event trigger for Lambda function
+# resource "aws_s3_bucket_notification" "s3_lambda_img_converter_trigger" {
+#   bucket = aws_s3_bucket.file_upload_bucket.id
+#   lambda_function {
+#     lambda_function_arn = aws_lambda_function.image_converter_lambda.arn
+#     events = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"] //delete thumbnail if image is removed
+#     filter_prefix = "images/"
+#   }
 # }
 
-# resource "aws_lambda_permission" "allow_lambda2_cloudwatch_logs" {
-#   statement_id  = "AllowExecutionFromCloudWatch"
+# resource "aws_lambda_permission" "s3_lambda_img_converter_trigger_permission" {
+#   statement_id  = "AllowS3Invoke"
 #   action        = "lambda:InvokeFunction"
-#   function_name = aws_lambda_function.image_converter_lambda.arn
-#   principal     = "logs.amazonaws.com"
-#   source_arn    = aws_cloudwatch_log_group.lambda_img_converter_log_group.arn
+#   function_name = aws_lambda_function.image_converter_lambda.function_name
+#   principal     = "s3.amazonaws.com"
+#   source_arn    = "arn:aws:s3:::${aws_s3_bucket.file_upload_bucket.id}"
 # }
+
+resource "aws_lambda_function_url" "test_latest" {
+  function_name      = aws_lambda_function.file_upload_lambda.function_name
+  authorization_type = "NONE"
+}
