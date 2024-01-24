@@ -49,17 +49,3 @@ Deploy application
     cd "LambdaAPIS3/src/LambdaAPIS3"
     dotnet lambda deploy-serverless
 ```
-
-To Do:
-- Upload zip to s3 vs from file system (3)
-- terraform.tfstate location
-- Clean up main.tf and update output.tf (1)
-- Create another lambda that will trigger upon file upload and create a thumbnail of the uploaded image (2)
-    - delete image then delete thumbnail
-    - log level
-    - terraform update so event notification is created for sns, currently it is not. mirror lambda invocation
-- Add diagram
-
-```
-> git filter-branch -f --index-filter 'git rm --cached -r --ignore-unmatch .terraform/'
-```

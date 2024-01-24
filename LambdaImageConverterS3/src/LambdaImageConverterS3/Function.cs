@@ -44,24 +44,27 @@ public class Function
     public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
     {
         var eventRecords = evnt.Records ?? new List<S3Event.S3EventNotificationRecord>();
-        
+
         const string thumbnailFolder = "thumbnails/";
-        
+
         foreach (var s3Event in eventRecords.Select(record => record.S3).Where(s3Event => s3Event != null))
         {
             try
             {
                 var bucketName = s3Event.Bucket.Name;
                 var key = s3Event.Object.Key;
-                
+
                 var metadataResponse = await _s3Client.GetObjectMetadataAsync(s3Event.Bucket.Name, s3Event.Object.Key);
                 context.Logger.LogInformation(metadataResponse.Headers.ContentType);
-             
+
                 var response = await _s3Client.GetObjectAsync(bucketName, key);
                 context.Logger.LogLine($"Original Size of {key}: {response.ContentLength}");
 
+                if (response.ContentLength == 0)
+                    continue;
+
                 using var image = await Image.LoadAsync(response.ResponseStream);
-                
+
                 const int maxWidth = 50;
                 const int maxHeight = 50;
                 image.Mutate(x => x.Resize(new ResizeOptions
@@ -72,9 +75,9 @@ public class Function
 
                 using var stream = new MemoryStream();
                 await image.SaveAsync(stream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-                
+
                 context.Logger.LogLine($"Thumbnail Size of {key}: {stream.Length}");
-                    
+
                 var thumbnailKey = thumbnailFolder + key.Replace("images/", "");
                 var uploadRequest = new PutObjectRequest
                 {

@@ -88,18 +88,18 @@ resource "aws_iam_role_policy_attachment" "s3_policy_attachment" {
 }
 
 # Cloud Watch
-resource "aws_cloudwatch_log_group" "lambda_api_s3_log_group" {
-  name = "/aws/lambda/ei_bg_lambda_file_upload"
-  # Additional configurations if needed
-}
+# resource "aws_cloudwatch_log_group" "lambda_api_s3_log_group" {
+#   name = "/aws/lambda/ei_bg_lambda_file_upload"
+#   # Additional configurations if needed
+# }
 
-resource "aws_lambda_permission" "allow_lambda1_cloudwatch_logs" {
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.file_upload_lambda.arn
-  principal     = "logs.amazonaws.com"
-  source_arn    = aws_cloudwatch_log_group.lambda_api_s3_log_group.arn
-}
+# resource "aws_lambda_permission" "allow_lambda1_cloudwatch_logs" {
+#   statement_id  = "AllowExecutionFromCloudWatch"
+#   action        = "lambda:InvokeFunction"
+#   function_name = aws_lambda_function.file_upload_lambda.arn
+#   principal     = "logs.amazonaws.com"
+#   source_arn    = aws_cloudwatch_log_group.lambda_api_s3_log_group.arn
+# }
 
 # Lambda API S3 Function
 data "archive_file" "lambda1_function_archive" {
@@ -177,14 +177,14 @@ resource "aws_sns_topic_subscription" "file_upload_topic_subscription" {
   endpoint  = var.sns_email
 }
 
-resource "aws_s3_bucket_notification" "s3_sns_trigger" {
-  bucket = aws_s3_bucket.file_upload_bucket.id
-  topic {
-    topic_arn     = aws_sns_topic.file_upload_topic.arn
-    events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "thumbnails/"
-  }
-}
+# resource "aws_s3_bucket_notification" "s3_sns_trigger" {
+#   bucket = aws_s3_bucket.file_upload_bucket.id
+#   topic {
+#     topic_arn     = aws_sns_topic.file_upload_topic.arn
+#     events        = ["s3:ObjectCreated:*"]
+#     filter_prefix = "thumbnails/"
+#   }
+# }
 
 # Lambda Image Converter Function
 data "archive_file" "lambda2_function_archive" {
@@ -201,9 +201,9 @@ resource "aws_lambda_function" "image_converter_lambda" {
   filename      = data.archive_file.lambda2_function_archive.output_path
 
   # CloudWatch Logs configuration
-  # tracing_config {
-  #   mode = "PassThrough"
-  # }
+  tracing_config {
+    mode = "PassThrough"
+  }
 
    environment {
      variables = {
@@ -216,22 +216,27 @@ resource "aws_lambda_function" "image_converter_lambda" {
 }
 
 # Cloud Watch
-resource "aws_cloudwatch_log_group" "lambda_img_converter_log_group" {
-  name = "/aws/lambda/ei_bg_lambda_image_converter"
-  # Additional configurations if needed
-}
+# resource "aws_cloudwatch_log_group" "lambda_img_converter_log_group" {
+#   name = "/aws/lambda/ei_bg_lambda_image_converter"
+#   # Additional configurations if needed
+# }
 
-resource "aws_lambda_permission" "allow_lambda2_cloudwatch_logs" {
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.image_converter_lambda.arn
-  principal     = "logs.amazonaws.com"
-  source_arn    = aws_cloudwatch_log_group.lambda_img_converter_log_group.arn
-}
+# resource "aws_lambda_permission" "allow_lambda2_cloudwatch_logs" {
+#   statement_id  = "AllowExecutionFromCloudWatch"
+#   action        = "lambda:InvokeFunction"
+#   function_name = aws_lambda_function.image_converter_lambda.arn
+#   principal     = "logs.amazonaws.com"
+#   source_arn    = aws_cloudwatch_log_group.lambda_img_converter_log_group.arn
+# }
 
-# Set up S3 event trigger for Lambda function
-resource "aws_s3_bucket_notification" "s3_lambda_img_converter_trigger" {
+# Set up S3 event trigger lambda and sns
+resource "aws_s3_bucket_notification" "s3_lambda_n_sns_trigger" {
   bucket = aws_s3_bucket.file_upload_bucket.id
+  topic {
+    topic_arn     = aws_sns_topic.file_upload_topic.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_prefix = "thumbnails/"
+  }
   lambda_function {
     lambda_function_arn = aws_lambda_function.image_converter_lambda.arn
     events = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"] //delete thumbnail if image is removed
