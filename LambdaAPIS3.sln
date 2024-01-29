@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{9E8D6F9D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "http", "http", "{5B9AEF2C-2EE0-4E90-A1AE-B5DB7468F852}"
 	ProjectSection(SolutionItems) = preProject
-		requests.http = requests.http
+		calculator.http = calculator.http
 	EndProjectSection
 EndProject
 Global

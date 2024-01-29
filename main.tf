@@ -3,6 +3,10 @@ provider "aws" {
   region  = "us-east-1"
 }
 
+resource "random_id" "id" {
+	byte_length = 8
+}
+
 # S3 Bucket for File Uploads
 resource "aws_s3_bucket" "file_upload_bucket" {
   bucket = var.s3_file_upload_bucket_name # Change this to a unique name
@@ -233,9 +237,11 @@ resource "aws_lambda_permission" "s3_lambda_img_converter_trigger_permission" {
   source_arn    = "arn:aws:s3:::${aws_s3_bucket.file_upload_bucket.id}"
 }
 
+# https://advancedweb.hu/how-to-use-the-aws_apigatewayv2_api-to-add-an-http-api-to-a-lambda-function/
 # Create API Gateway HTTP API
 resource "aws_apigatewayv2_api" "http_api_gw" {
   name          = "ei-bg-apigw"
+  # name = "api-${random_id.id.hex}"
   protocol_type = "HTTP"
   target        = aws_lambda_function.file_upload_lambda.arn
   cors_configuration {

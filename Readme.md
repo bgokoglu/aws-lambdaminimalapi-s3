@@ -75,7 +75,7 @@ You can either use the DeleteFiles endpoint or manually delete the files from th
 To Do:
 - Upload zip to s3 vs from file system (3)
 - terraform.tfstate is S3
-- Clean up main.tf and update output.tf (1)
+- Clean up main.tf (seperate into modules) and update output.tf (1)
 
 ```
 > git filter-branch -f --index-filter 'git rm --cached -r --ignore-unmatch .terraform/'
