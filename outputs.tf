@@ -6,9 +6,9 @@ output "file_upload_topic" {
   value = aws_sns_topic.file_upload_topic.arn
 }
 
-output "lambda_function_url" {
-  value = aws_lambda_function_url.test_latest.function_url
-}
+# output "lambda_function_url" {
+#   value = aws_lambda_function_url.test_latest.function_url
+# }
 
 output "api_gateway_url" {
   value = aws_apigatewayv2_api.http_api_gw.api_endpoint

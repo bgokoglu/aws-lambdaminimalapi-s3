@@ -283,7 +283,7 @@ resource "aws_apigatewayv2_stage" "dev" {
 # resource "aws_apigatewayv2_route" "all_routes" {
 #   api_id = aws_apigatewayv2_api.http_api_gw.id
 #   route_key = "ANY /{proxy+}"
-#   # ßroute_key = "GET /"
+#   # route_key = "GET /"
 #   target    = "integrations/${aws_apigatewayv2_integration.api_gw_integration.id}"
 # }
 
@@ -296,7 +296,8 @@ resource "aws_lambda_permission" "function_resource_permission" {
   source_arn    = "${aws_apigatewayv2_api.http_api_gw.execution_arn}/*/*"
 }
 
-resource "aws_lambda_function_url" "test_latest" {
-  function_name      = aws_lambda_function.file_upload_lambda.function_name
-  authorization_type = "NONE"
-}
+# Commented out so lambda can be only invoked by api gateway
+# resource "aws_lambda_function_url" "test_latest" {
+#   function_name      = aws_lambda_function.file_upload_lambda.function_name
+#   authorization_type = "NONE"
+# }
