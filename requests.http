@@ -1,0 +1,20 @@
+#Calculator
+@api-gateway-url = https://n5df7fsxw9.execute-api.us-east-1.amazonaws.com
+
+# Add
+GET {{api-gateway-url}}/calculator/add/3/4
+
+###
+
+# Subtract
+GET {{api-gateway-url}}/calculator/subtract/5/3
+
+###
+
+# Multiply
+GET {{api-gateway-url}}/calculator/multiply/3/5
+
+###
+
+# Divide
+GET {{api-gateway-url}}/calculator/divide/4/2

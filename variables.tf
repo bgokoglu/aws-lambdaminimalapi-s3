@@ -1,3 +1,13 @@
+variable "application" {
+  type    = string
+  default = "ei_bg"
+}
+
+variable "environment" {
+  type    = string
+  default = "dev"
+}
+
 variable "lambda_execution_role_name" {
   type    = string
   default = "ei_bg_api_lambda_execution_role"

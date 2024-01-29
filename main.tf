@@ -111,11 +111,11 @@ resource "aws_lambda_function" "file_upload_lambda" {
     mode = "PassThrough"
   }
 
-  environment {
-    variables = {
-      BUCKET_NAME = aws_s3_bucket.lambda_bucket.bucket,
-    }
-  }
+  # environment {
+  #   variables = {
+  #     BUCKET_NAME = aws_s3_bucket.lambda_bucket.bucket,
+  #   }
+  # }
 
   # Set the timeout to 20 seconds
   timeout = 20
@@ -231,6 +231,69 @@ resource "aws_lambda_permission" "s3_lambda_img_converter_trigger_permission" {
   function_name = aws_lambda_function.image_converter_lambda.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = "arn:aws:s3:::${aws_s3_bucket.file_upload_bucket.id}"
+}
+
+# Create API Gateway HTTP API
+resource "aws_apigatewayv2_api" "http_api_gw" {
+  name          = "ei-bg-apigw"
+  protocol_type = "HTTP"
+  target        = aws_lambda_function.file_upload_lambda.arn
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "HEAD", "OPTIONS", "POST"]
+  }
+}
+
+resource "aws_apigatewayv2_stage" "dev" {
+  api_id = aws_apigatewayv2_api.http_api_gw.id
+  name        = "dev"
+  auto_deploy = true
+
+  # access_log_settings {
+  #   destination_arn = aws_cloudwatch_log_group.main_api_gw.arn
+
+  #   format = jsonencode({
+  #     requestId               = "$context.requestId"
+  #     sourceIp                = "$context.identity.sourceIp"
+  #     requestTime             = "$context.requestTime"
+  #     protocol                = "$context.protocol"
+  #     httpMethod              = "$context.httpMethod"
+  #     resourcePath            = "$context.resourcePath"
+  #     routeKey                = "$context.routeKey"
+  #     status                  = "$context.status"
+  #     responseLength          = "$context.responseLength"
+  #     integrationErrorMessage = "$context.integrationErrorMessage"
+  #     }
+  #   )
+  # }
+}
+
+# resource "aws_cloudwatch_log_group" "main_api_gw" {
+#   name = "/aws/api-gw/${aws_apigatewayv2_api.http_api_gw.name}"
+#   retention_in_days = 30
+# }
+
+# REST API requires more configuration while above config is sufficient for HTTP API 
+# resource "aws_apigatewayv2_integration" "api_gw_integration" {
+#   api_id           = aws_apigatewayv2_api.http_api_gw.id
+#   integration_type = "AWS_PROXY"
+#   integration_uri  = aws_lambda_function.file_upload_lambda.invoke_arn
+# }
+
+# resource "aws_apigatewayv2_route" "all_routes" {
+#   api_id = aws_apigatewayv2_api.http_api_gw.id
+#   route_key = "ANY /{proxy+}"
+#   # ßroute_key = "GET /"
+#   target    = "integrations/${aws_apigatewayv2_integration.api_gw_integration.id}"
+# }
+
+# Create Lambda function permission for API Gateway
+resource "aws_lambda_permission" "function_resource_permission" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.file_upload_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http_api_gw.execution_arn}/*/*"
 }
 
 resource "aws_lambda_function_url" "test_latest" {

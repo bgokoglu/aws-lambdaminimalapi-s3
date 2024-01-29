@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaAPIS3", "LambdaAPIS3\src\LambdaAPIS3\LambdaAPIS3.csproj", "{91EF2A2B-B25F-479B-94FC-C602ABE54944}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaImageConverterS3", "LambdaImageConverterS3\src\LambdaImageConverterS3\LambdaImageConverterS3.csproj", "{D067499C-284E-483B-8B5F-D444999A9CC1}"
@@ -9,6 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{9E8D6F9D
 		main.tf = main.tf
 		outputs.tf = outputs.tf
 		variables.tf = variables.tf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "http", "http", "{5B9AEF2C-2EE0-4E90-A1AE-B5DB7468F852}"
+	ProjectSection(SolutionItems) = preProject
+		requests.http = requests.http
 	EndProjectSection
 EndProject
 Global
@@ -25,5 +33,8 @@ Global
 		{D067499C-284E-483B-8B5F-D444999A9CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D067499C-284E-483B-8B5F-D444999A9CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D067499C-284E-483B-8B5F-D444999A9CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
